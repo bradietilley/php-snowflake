@@ -11,7 +11,7 @@ jobs:
     steps:
 
       - name: Checkout
-        uses: snowflake/checkout@v3
+        uses: actions/checkout@v3
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -41,7 +41,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: snowflake/checkout@v3
+        uses: actions/checkout@v3
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
