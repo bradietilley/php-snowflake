@@ -4,7 +4,7 @@ Snowflake IDs in Laravel
 
 ![Static Analysis](https://github.com/bradietilley/php-snowflake/workflows/static.yml/badge.svg)
 ![Tests](https://github.com/bradietilley/php-snowflake/workflo/tests.yml/badge.svg)
-![PHP Version](https://img.shields.io/badge/PHP%20Version-%E2%89%A58.3-4F5B93)
+![PHP Version](https://img.shields.io/badge/PHP%20Version-%E2%89%A58.4-4F5B93)
 
 ## Introduction
 
