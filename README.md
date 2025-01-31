@@ -2,10 +2,9 @@
 
 Snowflake IDs in Laravel
 
-![Static Analysis](https://github.com/bradietilley/php-snowflake/snowflake/workflows/static.yml/badge.svg)
-![Tests](https://github.com/bradietilley/php-snowflake/snowflake/workflows/tests.yml/badge.svg)
-![Laravel Version](https://img.shields.io/badge/Laravel%20Version-11.x-F9322C)
-![PHP Version](https://img.shields.io/badge/PHP%20Version-8.3-4F5B93)
+![Static Analysis](https://github.com/bradietilley/php-snowflake/workflows/static.yml/badge.svg)
+![Tests](https://github.com/bradietilley/php-snowflake/workflo/tests.yml/badge.svg)
+![PHP Version](https://img.shields.io/badge/PHP%20Version-%E2%89%A58.3-4F5B93)
 
 ## Introduction
 
