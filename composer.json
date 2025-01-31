@@ -28,7 +28,7 @@
     "require-dev": {
         "laravel/pint": "^1.0",
         "pestphp/pest": "^2.0",
-        "phpstan/phpstan": "^1.8",
+        "phpstan/phpstan": "^2.1",
         "symfony/var-dumper": "^7.2"
     },
     "config": {
