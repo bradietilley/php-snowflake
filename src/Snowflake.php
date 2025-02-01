@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace BradieTilley\Snowflake;
 
+use BradieTilley\Snowflake\SequenceResolvers\MemoryResolver;
+use BradieTilley\Snowflake\SequenceResolvers\SequenceResolver;
+use BradieTilley\Snowflake\TimestampResolvers\MicrosecondTimestampResolver;
+use BradieTilley\Snowflake\TimestampResolvers\TimestampResolver;
+use Closure;
+
 class Snowflake
 {
     public const string DEFAULT_EPOCH_START = '2021-02-02 00:00:00';
@@ -34,6 +40,26 @@ class Snowflake
 
     protected static int $cluster = self::DEFAULT_CLUSTER_ID;
 
+    protected static Closure|SequenceResolver|null $sequenceResolver = null;
+
+    protected static Closure|TimestampResolver|null $timestampResolver = null;
+
+    /**
+     * @param class-string<SequenceResolver>|SequenceResolver|Closure|null $resolver
+     */
+    public static function sequenceResolver(Closure|SequenceResolver|string|null $resolver): void
+    {
+        static::$sequenceResolver = is_string($resolver) ? new $resolver() : $resolver;
+    }
+
+    /**
+     * @param class-string<TimestampResolver>|TimestampResolver|Closure|null $resolver
+     */
+    public static function timestampResolver(Closure|string|TimestampResolver|null $resolver): void
+    {
+        static::$timestampResolver = is_string($resolver) ? new $resolver() : $resolver;
+    }
+
     public static function configure(string $epochStart, int $cluster, int $worker): void
     {
         $timestamp = strtotime($epochStart);
@@ -47,16 +73,13 @@ class Snowflake
 
     public static function getSequence(int $time): int
     {
-        if (self::$lastTimestamp === $time) {
-            self::$sequence++;
+        self::$sequenceResolver ??= new MemoryResolver();
 
-            return self::$sequence;
+        if (self::$sequenceResolver instanceof Closure) {
+            return (int) (self::$sequenceResolver)($time);
         }
 
-        self::$sequence = 0;
-        self::$lastTimestamp = $time;
-
-        return self::$sequence;
+        return self::$sequenceResolver->sequence($time);
     }
 
     public static function id(?string $group = null): string
@@ -102,7 +125,13 @@ class Snowflake
      */
     public static function timestamp(): int
     {
-        return (int) (EpochNanoseconds::now() / 1000);
+        self::$timestampResolver ??= new MicrosecondTimestampResolver();
+
+        if (self::$timestampResolver instanceof Closure) {
+            return (int) (self::$timestampResolver)();
+        }
+
+        return self::$timestampResolver->timestamp();
     }
 
     /**
