@@ -27,7 +27,7 @@ final class EpochNanoseconds
     {
         if (self::$referenceStartHrtime === null) {
             self::$referenceStartHrtime = hrtime(true);
-            self::$referenceStartTime = time() * self::BILLION;
+            self::$referenceStartTime = (int) (microtime(true) * self::BILLION);
         }
 
         $elapsedTime = hrtime(true) - self::$referenceStartHrtime;
