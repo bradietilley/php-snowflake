@@ -8,29 +8,28 @@ Snowflake IDs in Laravel
 
 ## Introduction
 
-PHP-Snowflake is a high-precision Snowflake ID generator designed for applications that prioritize timestamp accuracy over extensive sequencing. Unlike traditional auto-increment IDs or cumbersome UUIDs/ULIDs, this package leverages a microsecond-precise Snowflake implementation, practically ensuring unique timestamps per thread without even needing sequencing. By allocating 50 bits to the timestamp, it sacrifices most sequencing bits while still allowing up to 16 IDs per microsecond (4-bit sequence). Given that a single Snowflake ID generation takes around 50µs in tests, the likelihood of collision within the same microsecond is negligible. With a compact schema of timestamp(50) + cluster(5) + worker(5) + sequence(4), PHP-Snowflake offers a balanced approach to distributed ID generation with both speed and uniqueness in mind.
+[Snowflake IDs](https://en.wikipedia.org/wiki/Snowflake_ID) come in various flavours. All variants of Snowflake IDs provide a distributed, time-based unique identifier system that avoids the pitfalls of traditional auto-incrementing IDs, and provides a cleaner alternative to large and unwieldy ULIDs/UUIDs. They enable efficient sorting, reduce database contention, and work well in distributed environments without requiring a single centralized coordination (to an extent at least).
 
-### Structure
+PHP-Snowflake implements a high-precision Snowflake ID generation system that prioritizes timestamp accuracy over extensive sequencing. By using a microsecond-precise timestamp, it significantly reduces the chances of generating sequentially enumerable IDs, a common issue with standard Snowflake and ULID implementations when producing multiple IDs per second or millisecond. It should go without saying, but sequential IDs for public viewing are typically frowned upon.
 
-**timestamp(50):** The time portion
+This implementation dedicates 50 bits to the timestamp, leaving only 4 bits for sequencing, allowing up to 16 unique IDs per microsecond. The ID structure follows a compact schema:
 
-This first segment offers 2^50 values (1.1258999068e15). There's approximately 31,557,600 seconds per year, so this equates to 35,677,615 years using second-precision IDs. A lot can happen in a second, and still a lot can happen within a millisecond, so divide this by 1,000,000 and you get 35.677615 years supporting microsecond precision timestamps.
+- **Timestamp (50 bits)** – Ensures precise ordering and uniqueness.
+- **Cluster (5 bits) & Worker (5 bits)** – Supports distributed ID generation.
+- **Sequence (4 bits)** – Allows limited sequencing but overall minimizes predictability.
 
-**cluster(5):** Identifying the region, datacenter or server.
+By focusing on timestamp granularity, PHP-Snowflake provides a balance between uniqueness, speed, and distributed scalability while reducing the likelihood of predictable ID sequencing.
 
-The next segment offers 2^5 values (32). This is enough for most small and medium-sized applications, and even large-scale applications if configured correctly.
-
-**worker(5):** Identifying the worker, process or thread.
-
-The next segment offers 2^5 values (32). This is enough for most small and medium-sized applications, and even large-scale applications if configured correctly.
-
-**sequence(4):** IDs generated within the same microsecond
-
-The final segment offers 2^4 values (16). These values are reserved to handle same-microsecond IDs that may be generated, albeit insanely unlikely. This is approximately 800x as many IDs than what a macbook running PHP 8.4 can generate within a test environment.
-
-### Resources
-
-https://en.wikipedia.org/wiki/Snowflake_ID
+| Feature                                   | Auto-Inc IDs        | UUIDs                     | ULIDs                      | Traditional Snowflake IDs | Snowflake IDs (This package) |
+|-------------------------------------------|---------------------|---------------------------|----------------------------|---------------------------|--------------------------|
+| **Easy to read/copy/relay**               | ✅ Yes              | ❌ No                      | ❌ No                      | ✅ Yes                    | ✅ Yes                   |
+| **Stored as BIGINT**                      | ✅ Yes              | ❌ No (String/Binary)      | ❌ No (String/Binary)      | ✅ Yes                    | ✅ Yes                   |
+| **Hides table count**                     | ❌ No               | ✅ Yes                     | ✅ Yes                     | ✅ Yes                    | ✅ Yes                   |
+| **Globally scalable**                     | ❌ No               | ✅ Yes                     | ✅ Yes                     | ✅ Yes                    | ✅ Yes                   |
+| **Protects enumeration...**               | ❌ No               | ✅ Yes (ms)                | ✅ Yes (ms)                | ✅ Yes (ms)               | ✅ Yes (μs)                    |
+| **Sortable by time**                      | ✅ Yes              | ✅ Yes (if time-sorted)    | ✅ Yes                     | ✅ Yes                    | ✅ Yes                   |
+| **Suitable for Primary/Foreign Key**      | ✅ Yes              | ❌ No                      | ❌ No                      | ✅ Yes                    | ✅ Yes                   |
+| **Can be sent as number in JSON**         | ✅ Yes (until 2^53) | ❌ String                  | ❌ String                  | ❌ String                 | ❌ String                |
 
 
 ## Installation
