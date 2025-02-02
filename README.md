@@ -1,6 +1,6 @@
-# Laravel Snowflake (WIP)
+# Laravel Snowflake
 
-Snowflake IDs in Laravel
+Snowflake IDs in PHP
 
 ![Static Analysis](https://github.com/bradietilley/php-snowflake/actions/workflows/static.yml/badge.svg)
 ![Tests](https://github.com/bradietilley/php-snowflake/actions/workflows/tests.yml/badge.svg)
