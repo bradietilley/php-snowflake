@@ -7,7 +7,7 @@ namespace BradieTilley\Snowflake\SequenceResolvers;
 use BradieTilley\Snowflake\Exceptions\SnowflakeException;
 use Throwable;
 
-class FileResolver implements SequenceResolver
+class FileSequenceResolver implements SequenceResolver
 {
     public const int FILE_LOCK_OP = LOCK_EX;
 
@@ -52,7 +52,7 @@ class FileResolver implements SequenceResolver
         $this->f = null;
 
         if (! file_exists($this->file)) {
-            throw new SnowflakeException(sprintf('the lock file %s not exists', $this->file));
+            file_put_contents($this->file, '');
         }
 
         try {

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace BradieTilley\Snowflake;
 
-use BradieTilley\Snowflake\SequenceResolvers\MemoryResolver;
+use BradieTilley\Snowflake\IdentifierResolvers\IdentifierResolver;
+use BradieTilley\Snowflake\IdentifierResolvers\SnowflakeIdentifierResolver;
+use BradieTilley\Snowflake\SequenceResolvers\FileSequenceResolver;
 use BradieTilley\Snowflake\SequenceResolvers\SequenceResolver;
 use BradieTilley\Snowflake\TimestampResolvers\MicrosecondTimestampResolver;
 use BradieTilley\Snowflake\TimestampResolvers\TimestampResolver;
@@ -13,6 +15,8 @@ use Closure;
 class Snowflake
 {
     public const string DEFAULT_EPOCH_START = '2021-02-02 00:00:00';
+
+    public const string DEFAULT_FILE_RESOLVER_PATH = __DIR__.'/../sequence.json';
 
     public const int DEFAULT_WORKER_ID = 1;
 
@@ -32,17 +36,15 @@ class Snowflake
 
     protected static ?int $epoch = null;
 
-    protected static ?int $lastTimestamp = null;
+    public static int $worker = self::DEFAULT_WORKER_ID;
 
-    protected static ?int $sequence = null;
-
-    protected static int $worker = self::DEFAULT_WORKER_ID;
-
-    protected static int $cluster = self::DEFAULT_CLUSTER_ID;
+    public static int $cluster = self::DEFAULT_CLUSTER_ID;
 
     protected static Closure|SequenceResolver|null $sequenceResolver = null;
 
     protected static Closure|TimestampResolver|null $timestampResolver = null;
+
+    protected static Closure|IdentifierResolver|null $identifierResolver = null;
 
     /**
      * @param class-string<SequenceResolver>|SequenceResolver|Closure|null $resolver
@@ -60,20 +62,26 @@ class Snowflake
         static::$timestampResolver = is_string($resolver) ? new $resolver() : $resolver;
     }
 
+    /**
+     * @param class-string<IdentifierResolver>|IdentifierResolver|Closure|null $resolver
+     */
+    public static function identifierResolver(Closure|IdentifierResolver|string|null $resolver): void
+    {
+        static::$identifierResolver = is_string($resolver) ? new $resolver() : $resolver;
+    }
+
     public static function configure(string $epochStart, int $cluster, int $worker): void
     {
         $timestamp = strtotime($epochStart);
 
         self::$epoch = $timestamp * 1000 * 1000;
-        self::$lastTimestamp = self::$epoch;
-
         self::$cluster = $cluster;
         self::$worker = $worker;
     }
 
     public static function getSequence(int $time): int
     {
-        self::$sequenceResolver ??= new MemoryResolver();
+        self::$sequenceResolver ??= new FileSequenceResolver(self::DEFAULT_FILE_RESOLVER_PATH);
 
         if (self::$sequenceResolver instanceof Closure) {
             return (int) (self::$sequenceResolver)($time);
@@ -82,15 +90,15 @@ class Snowflake
         return self::$sequenceResolver->sequence($time);
     }
 
-    public static function id(?string $group = null): string
+    public static function id(string|null $group = null): string
     {
-        return (string) self::generate();
+        return (string) self::generate($group);
     }
 
     /**
      * Generate the 64bit unique id.
      */
-    protected static function generate(): int
+    protected static function generate(string|null $group = null): int
     {
         if (self::$epoch === null) {
             self::configure(self::DEFAULT_EPOCH_START, self::DEFAULT_CLUSTER_ID, self::DEFAULT_WORKER_ID);
@@ -103,21 +111,20 @@ class Snowflake
             $time = self::timestamp();
         }
 
-        self::$lastTimestamp = $time;
+        $lapsed = $time - self::$epoch;
 
-        return self::toSnowflakeId($time - self::$epoch, $sequenceId);
+        return self::toSnowflakeId($lapsed, $sequenceId, $group);
     }
 
-    public static function toSnowflakeId(int $time, int $sequence): int
+    public static function toSnowflakeId(int $time, int $sequence, string|null $group): int
     {
-        $workerIdLeftShift = self::SEQUENCE_BITS;
-        $datacenterIdLeftShift = self::WORKER_ID_BITS + self::SEQUENCE_BITS;
-        $timestampLeftShift = self::ID_BITS - self::TIMESTAMP_BITS;
+        static::$identifierResolver ??= new SnowflakeIdentifierResolver();
 
-        return ($time << $timestampLeftShift)
-            | (self::$cluster << $datacenterIdLeftShift)
-            | (self::$worker << $workerIdLeftShift)
-            | ($sequence);
+        if (static::$identifierResolver instanceof Closure) {
+            return (int) (static::$identifierResolver)($time, $sequence, $group);
+        }
+
+        return static::$identifierResolver->identifier($time, $sequence, $group);
     }
 
     /**

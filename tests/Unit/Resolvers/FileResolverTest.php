@@ -1,6 +1,6 @@
 <?php
 
-use BradieTilley\Snowflake\SequenceResolvers\FileResolver;
+use BradieTilley\Snowflake\SequenceResolvers\FileSequenceResolver;
 use BradieTilley\Snowflake\Snowflake;
 
 beforeEach(function () {
@@ -30,7 +30,7 @@ test('a file resolver can resolve a sequence', function () {
     Snowflake::timestampResolver(function () use (&$times) {
         return array_shift($times);
     });
-    Snowflake::sequenceResolver(new FileResolver($this->file));
+    Snowflake::sequenceResolver(new FileSequenceResolver($this->file));
 
     $sequence = [
         '5740539453880754441',

@@ -67,7 +67,7 @@ $worker = 1; // Example: config('app.worker')
 Snowflake::configure('2025-01-01 00:00:00', $cluster, $worker);
 ```
 
-### Understanding the Configuration Parameters
+**Understanding the Configuration Parameters:**
 
 - Epoch (`'2025-01-01 00:00:00'`)
     - This defines the starting point for all Snowflake IDs.
@@ -92,6 +92,54 @@ Snowflake::configure('2025-01-01 00:00:00', $cluster, $worker);
 - If you must transition to a new epoch due to long-term system lifespan concerns, consider:
     - Introducing a new ID version system alongside the existing one.
     - Migrating old data to a new storage format that accommodates a different epoch.
+
+
+### Concurrency
+
+Within a single process, it's nearly impossible for two Snowflake IDs to have the same timestamp.
+However, in high-concurrency environments where multiple requests occur simultaneously, it's possible
+for multiple IDs to share the same timestamp, potentially causing conflicts. This is where sequencing
+is used.
+
+While avoiding sequencing is preferred to reduce ID predictability, it becomes necessary when generating
+multiple IDs within the same microsecond.
+
+To ensure uniqueness across concurrent requests, you should use a sequence resolver that implements
+locking. While a cache-based lock may be slower than traditional database Auto Increment IDs, it enables
+global scalability, where a single database column is not sufficient.
+
+By default, PHP Snowflake will use a `FileResolver` which implements locking, however it will point to a
+file within this package (for guaranteed readability from the php process). Should you need to, you can
+configure the path or swap it out entirely (it's recommended to explicitly configure this).
+
+```php
+use BradieTilley\Snowflake\Snowflake;
+use BradieTilley\Snowflake\SequenceResolvers\FileResolver;
+
+$file = __DIR__.'/snowflake-concurrency.json';
+Snowflake::sequenceResolver(new FileResolver($file));
+
+Snowflake::id(); // guaranteed to be unique, even if it's the same microsecond as another process
+```
+
+See [Laravel Snowflake](https://github.com/bradietilley/laravel-snowflake) package for Laravel-specific sequence resolvers.
+
+### Testing
+
+You may wish to override the ID generator in test environments. You can do this by swapping out the `IdentifierResolver` with your own:
+
+```php
+Snowflake::identifierResolver(function (int $timeSinceConfiguredEpoch, int $sequence, string|null $group) {
+    if ($group === 'something') {
+        return 1000000000000000001;
+    }
+
+    return (new SnowflakeIdentifierResolver())->identifier(...func_get_args());
+});
+
+Snowflake::id('something'); // 1000000000000000001 custom ID
+Snowflake::id();            // 9345345346346345323 regular ID
+```
 
 ## Author
 

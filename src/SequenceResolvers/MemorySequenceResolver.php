@@ -7,7 +7,7 @@ namespace BradieTilley\Snowflake\SequenceResolvers;
 /**
  * Does not support concurrency. Not recommended for production.
  */
-class MemoryResolver implements SequenceResolver
+class MemorySequenceResolver implements SequenceResolver
 {
     protected int $lastTime = 0;
     protected int $sequence = 0;
