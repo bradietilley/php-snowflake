@@ -1,10 +1,11 @@
-# Laravel Snowflake
+# PHP Snowflake
 
-Snowflake IDs in PHP
+Snowflake IDs in PHP, with optional first-class Laravel integration.
 
 ![Static Analysis](https://github.com/bradietilley/php-snowflake/actions/workflows/static.yml/badge.svg)
 ![Tests](https://github.com/bradietilley/php-snowflake/actions/workflows/tests.yml/badge.svg)
 ![PHP Version](https://img.shields.io/badge/PHP%20Version-%E2%89%A58.4-4F5B93)
+![Laravel Version](https://img.shields.io/badge/Laravel%20Version-13.x-F9322C)
 
 ## Introduction
 
@@ -122,7 +123,7 @@ Snowflake::sequenceResolver(new FileResolver($file));
 Snowflake::id(); // guaranteed to be unique, even if it's the same microsecond as another process
 ```
 
-See [Laravel Snowflake](https://github.com/bradietilley/laravel-snowflake) package for Laravel-specific sequence resolvers.
+If you're using Laravel, this package ships a cache-based `LaravelSequenceResolver` that is wired up automatically. See [Laravel Integration](#laravel-integration) below.
 
 ### Testing
 
@@ -140,6 +141,82 @@ Snowflake::identifierResolver(function (int $timeSinceConfiguredEpoch, int $sequ
 Snowflake::id('something'); // 1000000000000000001 custom ID
 Snowflake::id();            // 9345345346346345323 regular ID
 ```
+
+## Laravel Integration
+
+This package includes an optional, opt-in Laravel integration. The core Snowflake generator has **no framework dependency** — the Laravel classes only load when running inside a Laravel application.
+
+> This integration was previously distributed as the separate `bradietilley/laravel-snowflake` package. It now lives here under the `BradieTilley\Snowflake\Laravel\` namespace.
+
+### Installation
+
+The Laravel integration is bundled with the package — there is nothing extra to install:
+
+```
+composer require bradietilley/php-snowflake
+```
+
+The service provider is auto-discovered. To customise the configuration, publish the config file:
+
+```
+php artisan vendor:publish --tag=snowflakes-config
+```
+
+### Preparing your schema
+
+Your model's primary key must not auto-increment. Since `$table->id();` adds auto-increment, swap it out:
+
+```diff
+-$table->id();
++$table->bigInteger('id')->unsigned()->primary();
+```
+
+### Integrating with your models
+
+Add the `HasSnowflake` trait to your models. It handles every aspect of a Snowflake ID:
+
+- Automatically setting the `id` to a Snowflake ID
+- Configuring the cast for `id` to `string`
+- Disabling `increments` on the model
+- Configuring the `keyType` to `string`
+
+```php
+use BradieTilley\Snowflake\Laravel\Eloquent\HasSnowflake;
+use Illuminate\Database\Eloquent\Model;
+
+class SomeModel extends Model
+{
+    use HasSnowflake;
+}
+```
+
+You're all set:
+
+```php
+$model = SomeModel::create();
+$model->id; // 9348975348573485734
+```
+
+### Concurrency
+
+The integration includes a `LaravelSequenceResolver` which uses a cache repository to manage the generation of multiple concurrent IDs within the same microsecond. It is registered automatically from the `snowflakes.sequencing.resolver` config value.
+
+You can configure various cache-related options:
+
+- The cache store (`snowflakes.sequencing.store`)
+- Cache prefix (`snowflakes.sequencing.prefix`)
+- Cache lock expiry (`snowflakes.sequencing.lock_expiry`)
+- Cache lock wait time (`snowflakes.sequencing.lock_wait`)
+
+The chosen store must support cache locks.
+
+### Testing
+
+In tests you may want predictable, sequential IDs similar to traditional auto-incrementing IDs.
+
+By enabling the `snowflakes.testing` configuration setting, the standard `SnowflakeIdentifierResolver` is swapped with a `SequentialIdentifierResolver`, generating realistic-length IDs that follow a standard auto-incrementing pattern.
+
+When in testing mode, IDs can be grouped using the `$group` argument. The `$group` is automatically set to the respective model class name, so both `Product::create()` and `User::create()` generate `9000000000000000001`, then `9000000000000000002`, and so on.
 
 ## Author
 

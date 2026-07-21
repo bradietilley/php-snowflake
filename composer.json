@@ -1,6 +1,6 @@
 {
     "name": "bradietilley/php-snowflake",
-    "description": "Snowflake ID Generator for PHP",
+    "description": "Snowflake ID Generator for PHP with optional Laravel integration",
     "type": "library",
     "license": "MIT",
     "autoload": {
@@ -10,7 +10,8 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Tests\\": "tests/"
+            "Tests\\": "tests/",
+            "Workbench\\App\\": "workbench/app/"
         }
     },
     "authors": [
@@ -26,14 +27,29 @@
         "php": "^8.4"
     },
     "require-dev": {
-        "laravel/pint": "^1.0",
-        "pestphp/pest": "^2.0",
+        "laravel/pint": "^1.19",
+        "orchestra/testbench": "^11.0",
+        "pestphp/pest": "^3.7",
         "phpstan/phpstan": "^2.1",
+        "spatie/laravel-package-tools": "^1.16",
         "symfony/var-dumper": "^7.2"
+    },
+    "suggest": {
+        "illuminate/support": "Required to use the Laravel service provider and configuration (^13.0)",
+        "illuminate/database": "Required to use the HasSnowflake Eloquent trait (^13.0)",
+        "illuminate/cache": "Required to use the LaravelSequenceResolver for cache-based concurrency (^13.0)",
+        "spatie/laravel-package-tools": "Required to boot the Laravel service provider (^1.16)"
     },
     "config": {
         "allow-plugins": {
             "pestphp/pest-plugin": true
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "BradieTilley\\Snowflake\\Laravel\\SnowflakeServiceProvider"
+            ]
         }
     }
 }

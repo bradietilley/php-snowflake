@@ -79,6 +79,23 @@ class Snowflake
         self::$worker = $worker;
     }
 
+    /**
+     * Reset all static configuration and resolvers back to their defaults.
+     *
+     * Primarily useful in test suites to avoid leaking global state between
+     * tests (e.g. a resolver configured by the Laravel integration bleeding
+     * into a standalone test).
+     */
+    public static function reset(): void
+    {
+        self::$epoch = null;
+        self::$worker = self::DEFAULT_WORKER_ID;
+        self::$cluster = self::DEFAULT_CLUSTER_ID;
+        self::$sequenceResolver = null;
+        self::$timestampResolver = null;
+        self::$identifierResolver = null;
+    }
+
     public static function getSequence(int $time): int
     {
         self::$sequenceResolver ??= new FileSequenceResolver(self::DEFAULT_FILE_RESOLVER_PATH);
