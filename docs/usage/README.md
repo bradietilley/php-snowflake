@@ -67,15 +67,13 @@ The signature is frozen after the first `id()` call. Changing it later breaks `p
 
 In Laravel, call `configureSignature()` from `bootstrap/app.php` or `AppServiceProvider::register()` before any model creates IDs.
 
-### The epoch should never change
+### The bit signature and epoch should NEVER change
 
-Once the Snowflake generator is in use, do not modify the epoch. Changing it would:
+Once the Snowflake generator is in use, do not modify the epoch or bit signature. Changing it would:
 
 - Invalidate previously generated IDs, making them non-sequential.
 - Potentially cause ID collisions, as new IDs could overlap with old ones.
 - Break sorting logic, since IDs would no longer be chronological.
-
-If you must transition to a new epoch due to long-term lifespan concerns, consider introducing a new ID version alongside the existing one, or migrating old data to a format that accommodates a different epoch.
 
 ## Next steps
 
