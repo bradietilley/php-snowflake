@@ -23,7 +23,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com), and this 
 ### Fixed
 
 - The Laravel cache-based sequence resolver is now actually registered. The previous `laravel-snowflake` package defined `snowflake.sequencing.resolver` but never wired it into `Snowflake::sequenceResolver()`, so cache-based concurrency never engaged. The `SnowflakeGenerator` now reads that config value and registers the resolver via the container.
-- `LaravelSequenceResolver` no longer takes a global cache lock on every ID. Sequencing now relies on atomic `add` + `increment` per microsecond key, which removes cross-microsecond lock contention under concurrency. The unused `snowflake.sequencing.lock_expiry` and `snowflake.sequencing.lock_wait` config options were removed.
 - Resolved a PHPStan (max level) error in `SequentialIdentifierResolver::identifier()` where a nullable `$group` was used as an array key.
 
 ### Breaking Changes
