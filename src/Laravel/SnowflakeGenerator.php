@@ -25,12 +25,12 @@ class SnowflakeGenerator
 
         $this->booted = true;
 
-        if (config('snowflakes.testing')) {
+        if (config('snowflake.testing')) {
             Snowflake::identifierResolver(new SequentialIdentifierResolver());
         }
 
         /** @var ?class-string<SequenceResolver> $resolver */
-        $resolver = config('snowflakes.sequencing.resolver');
+        $resolver = config('snowflake.sequencing.resolver');
 
         if ($resolver !== null) {
             /** @var SequenceResolver $instance */
@@ -39,7 +39,7 @@ class SnowflakeGenerator
         }
 
         /** @var array{ epoch: string, cluster: int, worker: int } $config */
-        $config = config('snowflakes.constants', []);
+        $config = config('snowflake.constants', []);
         Snowflake::configure($config['epoch'], $config['cluster'], $config['worker']);
     }
 

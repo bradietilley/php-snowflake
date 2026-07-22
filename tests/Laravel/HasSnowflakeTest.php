@@ -14,7 +14,7 @@ test('a model with HasSnowflakes will automatically record a snowflake ID', func
 
 test('a model with HasSnowflakes can create sequential IDs when testing', function () {
     config([
-        'snowflakes.testing' => true,
+        'snowflake.testing' => true,
     ]);
 
     $createUser = fn () => User::create([
@@ -35,7 +35,7 @@ test('a model with HasSnowflakes can create sequential IDs when testing', functi
 
 test('a model with HasSnowflakes can create sequential IDs when testing - resetting between tests', function () {
     config([
-        'snowflakes.testing' => true,
+        'snowflake.testing' => true,
     ]);
 
     $createUser = fn () => User::create([

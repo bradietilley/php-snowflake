@@ -23,19 +23,19 @@ class LaravelSequenceResolver implements SequenceResolver
     public function __construct(CacheManager $cache)
     {
         /** @var ?string $store */
-        $store = config('snowflakes.sequencing.store');
+        $store = config('snowflake.sequencing.store');
         $this->cache = $cache->store($store);
 
         /** @var string $prefix */
-        $prefix = config('snowflakes.sequencing.prefix', '');
+        $prefix = config('snowflake.sequencing.prefix', '');
         $this->prefix = $prefix;
 
         /** @var int $expire */
-        $expire = (int) config('snowflakes.sequencing.lock_expiry', 5);
+        $expire = (int) config('snowflake.sequencing.lock_expiry', 5);
         $this->lock = Cache::lock("{$prefix}_lock", $expire);
 
         /** @var int $wait */
-        $wait = (int) config('snowflakes.sequencing.lock_wait', 6);
+        $wait = (int) config('snowflake.sequencing.lock_wait', 6);
         $this->wait = $wait;
     }
 

@@ -10,7 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com), and this 
 
 - Merged the Laravel integration (previously the standalone `bradietilley/laravel-snowflake` package) into this package under the `BradieTilley\Snowflake\Laravel\` namespace.
 - `HasSnowflake` Eloquent trait for automatically assigning Snowflake IDs to models.
-- `SnowflakeServiceProvider` (auto-discovered) and a publishable `snowflakes` config file.
+- `SnowflakeServiceProvider` (auto-discovered) and a publishable `snowflake` config file.
 - `LaravelSequenceResolver` for cache-lock based concurrency, and `SequentialIdentifierResolver` for predictable sequential IDs in tests.
 - `Snowflake::reset()` to clear all static configuration and resolvers, primarily to avoid global state leaking between tests.
 
@@ -22,8 +22,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com), and this 
 
 ### Fixed
 
-- The Laravel cache-based sequence resolver is now actually registered. The previous `laravel-snowflake` package defined `snowflakes.sequencing.resolver` but never wired it into `Snowflake::sequenceResolver()`, so cache-based concurrency never engaged. The `SnowflakeGenerator` now reads that config value and registers the resolver via the container.
-- Corrected the `snowflakes.sequencing.lock_wait` config default, which previously read the `SNOWFLAKE_CACHE_LOCK_EXPIRY` environment variable instead of `SNOWFLAKE_CACHE_LOCK_WAIT`.
+- The Laravel cache-based sequence resolver is now actually registered. The previous `laravel-snowflake` package defined `snowflake.sequencing.resolver` but never wired it into `Snowflake::sequenceResolver()`, so cache-based concurrency never engaged. The `SnowflakeGenerator` now reads that config value and registers the resolver via the container.
+- Corrected the `snowflake.sequencing.lock_wait` config default, which previously read the `SNOWFLAKE_CACHE_LOCK_EXPIRY` environment variable instead of `SNOWFLAKE_CACHE_LOCK_WAIT`.
 - Resolved a PHPStan (max level) error in `SequentialIdentifierResolver::identifier()` where a nullable `$group` was used as an array key.
 
 ### Breaking Changes
