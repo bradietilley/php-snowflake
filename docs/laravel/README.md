@@ -57,12 +57,12 @@ The integration includes a `LaravelSequenceResolver` which uses a cache reposito
 
 Configurable options:
 
-- Cache store (`snowflake.sequencing.store`)
+- Cache store (`snowflake.sequencing.store`) — defaults to your app's default cache store
 - Cache prefix (`snowflake.sequencing.prefix`)
-- Cache lock expiry (`snowflake.sequencing.lock_expiry`)
-- Cache lock wait time (`snowflake.sequencing.lock_wait`)
 
-The chosen store must support cache locks.
+**Redis is recommended.** The resolver relies on atomic `add` (SET NX) and `increment` — no cache lock is taken. For a given microsecond key, the first caller wins `add` and gets sequence `0`; any other callers in that same microsecond atomically `increment`. Callers on different microseconds never block each other.
+
+Avoid file/array cache stores for multi-process ID generation; they do not provide the atomicity this resolver assumes.
 
 ## Testing
 

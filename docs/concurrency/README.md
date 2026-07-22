@@ -4,7 +4,7 @@ Within a single process, it is nearly impossible for two Snowflake IDs to share 
 
 Avoiding sequencing is preferred when possible (it reduces predictability), but it becomes necessary when generating multiple IDs within the same microsecond.
 
-To ensure uniqueness across concurrent requests, use a sequence resolver that implements locking. A cache-based lock may be slower than traditional database auto-increment IDs, but it enables global scalability where a single database column is not enough.
+To ensure uniqueness across concurrent requests, use a sequence resolver that coordinates across processes. File-based locking works out of the box; under Laravel, the cache-backed resolver is preferred for multi-server deployments.
 
 ## File resolver
 
@@ -23,3 +23,10 @@ Snowflake::id(); // guaranteed unique, even in the same microsecond as another p
 ## Laravel
 
 If you are using Laravel, this package ships a cache-based `LaravelSequenceResolver` that is wired up automatically. See [Laravel integration](../laravel/README.md#concurrency).
+
+It does **not** take a cache lock. For each microsecond timestamp it:
+
+1. Attempts `Cache::add($key, …)` — the first caller wins and receives sequence `0`
+2. Concurrent callers fall through to `Cache::increment($key)` — atomic on Redis (and typically the database cache driver)
+
+Prefer Redis (or another store with atomic `add` / `increment`). File and array cache stores are not safe for multi-process sequencing with this resolver.

@@ -19,9 +19,9 @@ return [
         'resolver' => LaravelSequenceResolver::class,
 
         /**
-         * The LaravelCacheResolver uses Laravel caching to ensure concurrency.
+         * The LaravelSequenceResolver uses Laravel caching to ensure concurrency.
          *
-         * This store should be a store that supports Cache Locks.
+         * Prefer a store with atomic add (SET NX) and increment, such as Redis.
          */
         'store' => env('SNOWFLAKE_CACHE_STORE', null),
 
@@ -29,16 +29,6 @@ return [
          * Cache key prefix to ensure keys don't clash with other keys
          */
         'prefix' => env('SNOWFLAKE_CACHE_PREFIX', ''),
-
-        /**
-         * Number of seconds that the cache lock should be valid for
-         */
-        'lock_expiry' => env('SNOWFLAKE_CACHE_LOCK_EXPIRY', 2),
-
-        /**
-         * Number of seconds to wait for the lock before throwing an exception
-         */
-        'lock_wait' => env('SNOWFLAKE_CACHE_LOCK_WAIT', 3),
     ],
 
     /**
