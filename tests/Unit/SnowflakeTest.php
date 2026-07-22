@@ -2,6 +2,8 @@
 
 use BradieTilley\Snowflake\Snowflake;
 
+beforeEach(fn () => Snowflake::reset());
+
 test('snowflake ids can be generated', function () {
     $id = Snowflake::id();
 

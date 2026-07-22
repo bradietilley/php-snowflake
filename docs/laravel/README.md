@@ -53,9 +53,23 @@ $model->id; // 9348975348573485734
 
 ## Concurrency
 
-The integration includes a `LaravelSequenceResolver` which uses a cache repository to manage concurrent IDs within the same microsecond. It is registered automatically from the `snowflake.sequencing.resolver` config value.
+By default the package uses an in-process `MemorySequenceResolver`. That is enough when each app server / queue worker has a **unique** `snowflake.constants.worker` (and optionally cluster).
 
-Configurable options:
+For shared worker ids across processes, opt into the cache sequencer by setting config — `SnowflakeGenerator` **auto-registers** it on boot:
+
+```php
+use BradieTilley\Snowflake\Laravel\SequenceResolvers\LaravelSequenceResolver;
+
+'sequencing' => [
+    'resolver' => LaravelSequenceResolver::class,
+    'store' => env('SNOWFLAKE_CACHE_STORE'), // Redis recommended
+    'prefix' => env('SNOWFLAKE_CACHE_PREFIX', ''),
+],
+```
+
+When `sequencing.resolver` is `null`, the core memory default is left in place.
+
+Configurable options for the cache resolver:
 
 - Cache store (`snowflake.sequencing.store`) — defaults to your app's default cache store
 - Cache prefix (`snowflake.sequencing.prefix`)
@@ -63,6 +77,10 @@ Configurable options:
 **Redis is recommended.** The resolver relies on atomic `add` (SET NX) and `increment` — no cache lock is taken. For a given microsecond key, the first caller wins `add` and gets sequence `0`; any other callers in that same microsecond atomically `increment`. Callers on different microseconds never block each other.
 
 Avoid file/array cache stores for multi-process ID generation; they do not provide the atomicity this resolver assumes.
+
+### Bit signature
+
+Call `Snowflake::configureSignature()` before any ID is generated (e.g. in `AppServiceProvider::register()` or `bootstrap/app.php`). See [Usage](../usage/README.md#bit-signature).
 
 ## Testing
 

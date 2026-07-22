@@ -36,10 +36,36 @@ Snowflake::configure('2025-01-01 00:00:00', $cluster, $worker);
   - Differentiates groups of workers.
   - Typically used for multiple datacenters, availability zones, or database shards.
   - Must be unique across all clusters.
+  - Must fit the configured cluster bit width (default: 0–31).
 
 - **Worker ID** (`$worker`)
   - Identifies the machine or service instance generating the ID.
   - Must be unique within a given cluster.
+  - Must fit the configured worker bit width (default: 0–31).
+
+### Bit signature
+
+The ID layout is `[ timestamp (50) | cluster | worker | sequence ]` within 63 bits. By default that is **5 cluster + 5 worker + 3 sequence** bits.
+
+Trade cluster/worker capacity for more sequence bits (or the reverse) with `configureSignature()` **before the first ID is generated**:
+
+```php
+use BradieTilley\Snowflake\Snowflake;
+
+// 1024 workers, no cluster field → 3 sequence bits
+Snowflake::configureSignature(workerIdBits: 10, clusterIdBits: 0);
+Snowflake::configure('2025-01-01 00:00:00', cluster: 0, worker: 42);
+
+// No cluster/worker fields → 13 sequence bits (max throughput per microsecond on one node)
+Snowflake::configureSignature(workerIdBits: 0, clusterIdBits: 0);
+Snowflake::configure('2025-01-01 00:00:00', cluster: 0, worker: 0);
+```
+
+Sequence bits are always derived: `13 - workerIdBits - clusterIdBits`, and must remain **≥ 3** (so `workerIdBits + clusterIdBits ≤ 10`).
+
+The signature is frozen after the first `id()` call. Changing it later breaks `parse()` and can collide with existing IDs — treat it like the epoch.
+
+In Laravel, call `configureSignature()` from `bootstrap/app.php` or `AppServiceProvider::register()` before any model creates IDs.
 
 ### The epoch should never change
 

@@ -4,14 +4,14 @@ use BradieTilley\Snowflake\SequenceResolvers\FileSequenceResolver;
 use BradieTilley\Snowflake\Snowflake;
 
 beforeEach(function () {
+    Snowflake::reset();
     $this->file = __DIR__.'/file-resolver-test.json';
     file_put_contents($this->file, '');
 });
 
 afterEach(function () {
     @unlink($this->file);
-    Snowflake::timestampResolver(null);
-    Snowflake::sequenceResolver(null);
+    Snowflake::reset();
 });
 
 test('a file resolver can resolve a sequence', function () {

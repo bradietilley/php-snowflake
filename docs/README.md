@@ -6,11 +6,11 @@ Snowflake IDs in PHP, with optional first-class Laravel integration.
 
 PHP-Snowflake prioritises timestamp accuracy over extensive sequencing. By using a microsecond-precise timestamp, it significantly reduces the chances of generating sequentially enumerable IDs — a common issue with standard Snowflake and ULID implementations when producing multiple IDs per second or millisecond.
 
-The ID structure:
+The ID structure (default signature — configurable via `configureSignature()`):
 
 - **Timestamp (50 bits)** — precise ordering and uniqueness
 - **Cluster (5 bits) & Worker (5 bits)** — distributed ID generation
-- **Sequence (4 bits)** — up to 16 unique IDs per microsecond
+- **Sequence (3 bits)** — up to 8 unique IDs per microsecond (more if you shrink cluster/worker bits)
 
 ## Documentation
 

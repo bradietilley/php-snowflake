@@ -1,7 +1,5 @@
 <?php
 
-use BradieTilley\Snowflake\Laravel\SequenceResolvers\LaravelSequenceResolver;
-
 return [
     /**
      * Use incremental IDs starting from 9000000000000000000 for predictability
@@ -14,12 +12,18 @@ return [
 
     'sequencing' => [
         /**
-         * Choose the resolver to use for handling concurrency
+         * Sequence resolver class, or null to use the package default
+         * (MemorySequenceResolver — in-process only).
+         *
+         * For cross-process uniqueness with a shared worker id, set this to
+         * LaravelSequenceResolver::class (Redis/cache recommended).
+         *
+         * @var class-string<\BradieTilley\Snowflake\SequenceResolvers\SequenceResolver>|null
          */
-        'resolver' => LaravelSequenceResolver::class,
+        'resolver' => null,
 
         /**
-         * The LaravelSequenceResolver uses Laravel caching to ensure concurrency.
+         * Cache store used by LaravelSequenceResolver.
          *
          * Prefer a store with atomic add (SET NX) and increment, such as Redis.
          */
@@ -44,14 +48,16 @@ return [
         'epoch' => env('SNOWFLAKE_EPOCH', '2025-01-01 00:00:00'),
 
         /**
-         * Identifier of the cluster (0-31)
+         * Cluster id — must fit the configured cluster bit width
+         * (default signature: 5 bits → 0–31).
          *
          * @var int
          */
         'cluster' => env('SNOWFLAKE_CLUSTER', 1),
 
         /**
-         * Identifier of for the given cluster (0-31)
+         * Worker id within the cluster — must fit the configured worker bit width
+         * (default signature: 5 bits → 0–31).
          *
          * @var int
          */
